@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  # --- TON APPLICATION (Générateur de Shorts) ---
+  short-app:
+    build: ./lelabs_ai-short-generator
+    container_name: generator_container
+    ports:
+      - "5000:5000"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - FAL_KEY=${FAL_KEY}
+      
+      # === LE POINT CRITIQUE (ROUTAGE PROXY) ===
+      # OpenAI SDK va taper sur le service 'proxy-app' port 8000
+      - OPENAI_BASE_URL=http://proxy-app:8000/v1
+      
+      # Fal Client va utiliser le service 'proxy-app' port 8000 comme hôte
+      - FAL_HOST=proxy-app:8000/fal
+      - FAL_G_INSECURE=true
+
+    depends_on:
+      - proxy-app
+    volumes:
+      # Sauvegarde les vidéos sur ton Windows
+      - ./lelabs_ai-short-generator/static/outputs:/app/static/outputs
+
+  # --- L'APPLICATION INFRA (Proxy Quota) ---
+  proxy-app:
+    build: ./lelabs_api-proxy
+    container_name: proxy_container
+    ports:
+      - "8000:8000"
+    environment:
+      - REDIS_HOST=redis # (Si tu as un redis, sinon enlève cette ligne pour le test)
+      # Les cibles réelles
+      - TARGET_OPENAI_URL=https://api.openai.com/v1
+      - TARGET_FAL_URL=https://api.fal.ai
