@@ -1,0 +1,6 @@
+flask
+openai
+fal-client
+python-dotenv
+asyncio
+requests

@@ -1,0 +1,147 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="fade-in">
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem;">
+        <div>
+            <h2 style="margin-bottom: 0.5rem;">Studio de Production</h2>
+            <div style="display: flex; gap: 12px; font-size: 0.9rem; align-items: center;">
+                <span style="background: white; padding: 4px 12px; border-radius: 20px; border: 1px solid var(--border);">
+                    🎨 {{ plan.style_preset }}
+                </span>
+                <span style="background: white; padding: 4px 12px; border-radius: 20px; border: 1px solid var(--border);">
+                    🎙️ {{ plan.selected_voice }}
+                </span>
+                <span id="saveStatus" style="font-size: 0.8rem; color: var(--text-tertiary); margin-left: 10px; opacity: 0; transition: opacity 0.3s;">
+                    💾 Sauvegarde...
+                </span>
+            </div>
+        </div>
+        <div style="display: flex; gap: 12px;">
+            <button class="btn btn-secondary" onclick="genStoryboard(this)" id="btnStory">
+                📸 Générer (Sélection)
+            </button>
+            <button class="btn btn-primary" onclick="launchRender()">
+                🚀 Lancer le Rendu (Kling Pro)
+            </button>
+        </div>
+    </div>
+
+    <div class="scene-grid">
+        {% for seg in plan.segments %}
+        <div class="scene-card" data-id="{{ seg.segment_id }}">
+            <div class="scene-img-box" id="img-box-{{ seg.segment_id }}" style="position: relative;">
+                
+                <div style="position: absolute; top: 10px; left: 10px; z-index: 10;">
+                    <input type="checkbox" class="regen-checkbox" value="{{ seg.segment_id }}" style="width: 20px; height: 20px; cursor: pointer; accent-color: var(--primary);">
+                </div>
+
+                <div style="text-align: center; color: var(--text-tertiary); padding-top: 40px;">
+                    <div style="font-size: 2rem; margin-bottom: 8px;">🖼️</div>
+                    <div class="ph-text" style="font-size: 0.85rem; font-weight: 500;">En attente</div>
+                </div>
+            </div>
+            <div class="scene-input-area">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.75rem; font-weight: 700; color: var(--text-tertiary); text-transform: uppercase;">
+                    <span>Scène {{ seg.segment_id }}</span>
+                    <span>Voix Off (Modifiable)</span>
+                </div>
+                <textarea class="vo-input" oninput="markUnsaved()" onchange="updatePlan()">{{ seg.voice_over }}</textarea>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script id="project-data" type="application/json">{{ plan | tojson }}</script>
+<script>
+    let projectData = JSON.parse(document.getElementById('project-data').textContent);
+    const saveStatus = document.getElementById('saveStatus');
+
+    function markUnsaved() {
+        saveStatus.innerText = "⏳ Écriture...";
+        saveStatus.style.opacity = "1";
+        saveStatus.style.color = "var(--text-tertiary)";
+    }
+
+    function updatePlan() {
+        saveStatus.innerText = "💾 Sauvegarde...";
+        document.querySelectorAll('.scene-card').forEach((card, idx) => {
+            projectData.segments[idx].voice_over = card.querySelector('.vo-input').value;
+        });
+        fetch('/api/update_plan', {
+            method: 'POST', 
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({plan: projectData})
+        }).then(res => {
+            if(res.ok) {
+                saveStatus.innerText = "✅ Texte Sauvegardé";
+                saveStatus.style.color = "var(--success)";
+                setTimeout(() => { saveStatus.style.opacity = "0"; }, 2000);
+            }
+        });
+    }
+
+    async function genStoryboard(btn) {
+        const originalText = btn.innerHTML;
+        
+        // 1. Récupérer les cases cochées
+        const checkboxes = document.querySelectorAll('.regen-checkbox:checked');
+        let indices = Array.from(checkboxes).map(cb => cb.value);
+        
+        // Si aucune case n'est cochée, on demande confirmation pour TOUT générer
+        if (indices.length === 0) {
+             const allEmpty = document.querySelectorAll('img').length === 0;
+             if(!allEmpty && !confirm("Aucune image sélectionnée. Voulez-vous TOUT régénérer ?")) return;
+             indices = null; // Null envoie le signal "Tout générer" au back
+        }
+
+        btn.disabled = true; btn.innerHTML = indices ? "Régénération..." : "Génération Totale...";
+        
+        // Indicateur visuel sur les zones concernées
+        if (indices) {
+            indices.forEach(id => {
+                const box = document.getElementById(`img-box-${id}`);
+                // On garde la checkbox mais on efface l'image
+                const cb = box.querySelector('.regen-checkbox').outerHTML;
+                box.innerHTML = `${cb}<div style="text-align: center; color: var(--text-tertiary); padding-top:40px;"><div class="loader-spin"></div></div>`;
+            });
+        } else {
+             document.querySelectorAll('.ph-text').forEach(e => e.innerText = "Calcul...");
+        }
+
+        try {
+            const res = await fetch('/api/storyboard', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ indices: indices })
+            });
+            const images = await res.json();
+            
+            // Mise à jour des images
+            for (const [id, url] of Object.entries(images)) {
+                const box = document.getElementById(`img-box-${id}`);
+                if(box) {
+                    // On remet la checkbox et l'image
+                    box.innerHTML = `
+                        <div style="position: absolute; top: 10px; left: 10px; z-index: 10;">
+                            <input type="checkbox" class="regen-checkbox" value="${id}" style="width: 20px; height: 20px; cursor: pointer;">
+                        </div>
+                        <img src="${url}" style="width:100%; height:100%; object-fit:cover; animation: fadeIn 0.5s ease;">
+                    `;
+                }
+            }
+            
+            // Décocher tout après génération
+            document.querySelectorAll('.regen-checkbox').forEach(cb => cb.checked = false);
+
+            btn.innerHTML = "✅ Prêt";
+            setTimeout(() => { btn.innerHTML = originalText; btn.disabled = false; }, 2000);
+        } catch(e) {
+            btn.innerHTML = "❌ Erreur"; btn.disabled = false;
+            console.error(e);
+        }
+    }
+
+    function launchRender() { window.location.href = '/process'; }
+</script>
+{% endblock %}

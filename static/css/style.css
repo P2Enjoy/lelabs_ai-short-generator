@@ -1,0 +1,214 @@
+/* --- DESIGN SYSTEM "NEXUS" (Style SaaS Premium) --- */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+    /* Palette Principale (Indigo & Slate) */
+    --primary: #4f46e5;
+    --primary-hover: #4338ca;
+    --primary-light: #eef2ff;
+    
+    --bg-main: #ffffff;
+    --bg-secondary: #f8fafc;
+    --bg-card: #ffffff;
+    
+    --text-primary: #0f172a;
+    --text-secondary: #64748b;
+    --text-tertiary: #94a3b8;
+    
+    --border: #e2e8f0;
+    --border-hover: #cbd5e1;
+    
+    --success: #10b981;
+    --danger: #ef4444;
+    
+    /* Effets */
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 24px;
+    
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+    --shadow-float: 0 20px 40px -5px rgba(79, 70, 229, 0.15);
+}
+
+* { box-sizing: border-box; outline: none; }
+
+body {
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    margin: 0;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* --- LAYOUT GLOBAL --- */
+.app-layout {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* Navbar Flottante */
+header {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    padding: 1rem 0;
+}
+
+.container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+.header-inner { display: flex; justify-content: space-between; align-items: center; }
+
+.logo { 
+    font-size: 1.25rem; font-weight: 800; color: var(--text-primary); 
+    display: flex; align-items: center; gap: 8px; cursor: pointer; text-decoration: none;
+}
+.logo-icon { 
+    width: 32px; height: 32px; background: var(--primary); color: white; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center; font-size: 1.2rem;
+}
+
+/* --- TYPOGRAPHIE --- */
+h1, h2, h3 { margin-top: 0; color: var(--text-primary); letter-spacing: -0.025em; }
+h1 { font-size: 2.5rem; line-height: 1.1; font-weight: 800; }
+h2 { font-size: 1.75rem; font-weight: 700; }
+p { color: var(--text-secondary); }
+
+/* --- COMPOSANTS UI --- */
+
+/* Boutons Modernes */
+.btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 12px 24px; font-weight: 600; font-size: 0.95rem;
+    border-radius: var(--radius-md); transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer; text-decoration: none; border: 1px solid transparent;
+}
+
+.btn-primary {
+    background: var(--primary); color: white;
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+}
+.btn-primary:hover { background: var(--primary-hover); transform: translateY(-1px); box-shadow: 0 8px 16px rgba(79, 70, 229, 0.3); }
+.btn-primary:disabled { opacity: 0.7; transform: none; cursor: not-allowed; }
+
+.btn-secondary {
+    background: white; border-color: var(--border); color: var(--text-primary);
+    box-shadow: var(--shadow-sm);
+}
+.btn-secondary:hover { border-color: var(--border-hover); background: var(--bg-secondary); }
+
+/* Cartes (Card) */
+.card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    padding: 2rem;
+    transition: all 0.3s ease;
+}
+
+/* Form Elements */
+input, textarea, select {
+    width: 100%; padding: 12px 16px;
+    border: 1px solid var(--border); border-radius: var(--radius-md);
+    font-family: inherit; font-size: 0.95rem; color: var(--text-primary);
+    background: var(--bg-main); transition: 0.2s;
+}
+input:focus, textarea:focus, select:focus {
+    border-color: var(--primary); outline: none;
+    box-shadow: 0 0 0 4px var(--primary-light);
+}
+label { display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 0.5rem; color: var(--text-primary); }
+
+/* --- ANIMATIONS --- */
+.fade-in { animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; transform: translateY(10px); }
+@keyframes fadeIn { to { opacity: 1; transform: translateY(0); } }
+
+/* --- SPECIFIC PAGES --- */
+
+/* Config Grid */
+.config-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 24px; }
+.option-card {
+    border: 1px solid var(--border); border-radius: var(--radius-md); padding: 16px;
+    cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 12px;
+}
+.option-card:hover { border-color: var(--primary); background: var(--primary-light); }
+.option-card.selected { border-color: var(--primary); background: var(--primary-light); ring: 2px solid var(--primary); }
+
+/* Editor Grid */
+.scene-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 24px; margin-top: 24px; }
+.scene-card { 
+    background: white; border-radius: var(--radius-md); overflow: hidden; 
+    border: 1px solid var(--border); box-shadow: var(--shadow-sm);
+}
+.scene-img-box {
+    aspect-ratio: 9/16; background: #f1f5f9; position: relative;
+    display: flex; align-items: center; justify-content: center;
+}
+.scene-img-box img { width: 100%; height: 100%; object-fit: cover; }
+.scene-input-area { padding: 16px; background: white; border-top: 1px solid var(--border); }
+.scene-input-area textarea { font-size: 0.9rem; min-height: 80px; resize: none; border-color: var(--border); }
+
+/* Process / Loader */
+.terminal-log {
+    background: #1e293b; color: #10b981; font-family: 'JetBrains Mono', monospace;
+    padding: 24px; border-radius: var(--radius-md); font-size: 0.85rem;
+    height: 200px; overflow-y: auto; text-align: left;
+    box-shadow: inset 0 2px 10px rgba(0,0,0,0.5);
+}
+
+/* --- CORRECTION GRILLE --- */
+.scene-grid {
+    display: grid;
+    /* Force une largeur min de 300px, sinon prend toute la place */
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); 
+    gap: 24px;
+    margin-top: 24px;
+    width: 100%;
+}
+
+.scene-card { 
+    background: white; 
+    border-radius: var(--radius-md); 
+    overflow: hidden; 
+    border: 1px solid var(--border); 
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    flex-direction: column; /* S'assure que le contenu s'empile bien */
+}
+
+/* --- CORRECTION TEXTAREA --- */
+.scene-input-area {
+    padding: 16px;
+    background: white;
+    border-top: 1px solid var(--border);
+    flex-grow: 1; /* Remplit l'espace restant */
+}
+
+.scene-input-area textarea {
+    font-size: 0.95rem;
+    line-height: 1.5;
+    min-height: 100px;
+    width: 100%;
+    resize: vertical; /* Permet de redimensionner uniquement en hauteur */
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    color: var(--text-primary);
+    
+    /* Supprime les flèches de scroll moches */
+    overflow-y: auto; 
+    scrollbar-width: thin;
+}
+
+.scene-input-area textarea:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-light);
+    outline: none;
+}
