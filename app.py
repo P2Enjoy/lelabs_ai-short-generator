@@ -114,4 +114,5 @@ def api_render():
     return jsonify({"url": f"/static/outputs/{filename}"})
 
 if __name__ == '__main__':
-    app.run(debug=True, use_reloader=False, port=5000)
+    # host='0.0.0.0' est nécessaire pour que le conteneur soit accessible de l'extérieur
+    app.run(debug=True, use_reloader=False, host='0.0.0.0', port=5000)
