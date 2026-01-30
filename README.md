@@ -2,133 +2,124 @@
 
 **Générateur de vidéos courtes (Shorts/Reels) entièrement automatisé par IA.**
 
-Ce projet est une application web (Flask) qui orchestre plusieurs modèles d'IA de pointe pour transformer une simple idée textuelle en une vidéo complète de 15 à 45 secondes, incluant :
-* Scénario et découpage technique (OpenAI GPT-4o)
-* Images hyper-réalistes cohérentes (Flux Schnell via Fal.ai)
-* Animation vidéo (Kling Pro via Fal.ai)
-* Voix off ultra-réaliste (Minimax via Fal.ai)
-* Musique de fond adaptative (AceStep via Fal.ai)
-* Sous-titres automatiques incrustés (Wizper via Fal.ai + FFmpeg)
+Ce projet est une application web (Flask) capable de transformer une simple idée textuelle en une vidéo complète. Il orchestre plusieurs modèles d'IA (GPT-4, Flux, Kling, Minimax) et assemble le tout via FFmpeg.
+
+**Particularité Architecturelle :**
+Cette application est conçue pour fonctionner de pair avec **`lelabs_api-proxy`**. Toutes les requêtes sortantes (OpenAI, Fal.ai) passent par ce proxy local pour la gestion centralisée des quotas et de la sécurité.
 
 ---
 
 ## ✨ Fonctionnalités
 
-* **Orchestration "Director Mode"** : L'IA agit comme un réalisateur, définissant les plans (Large, Action, Gros plan) et garantissant la variété visuelle.
-* **Cohérence Personnage (Character DNA)** : Maintient l'apparence du protagoniste (vêtements, visage) tout au long de la vidéo grâce à des prompts structurés.
-* **Pipeline Complet** : De la génération du script au montage final `.mp4`.
-* **Post-Production Automatisée** :
-    * Synchronisation audio/vidéo stricte.
-    * Incrustation de sous-titres (Hardsub style réseaux sociaux).
-    * Mixage audio (Ducking) pour que la musique ne couvre pas la voix.
-* **Interface Web** : Tableau de bord pour configurer le style, la voix, et prévisualiser/régénérer les images avant le rendu final.
+* **Scénarisation IA** : GPT-4o ("Director Mode") écrit le script et les prompts techniques.
+* **Visuels Cohérents** : Flux Schnell génère les images avec un maintien de l'apparence du personnage (Character DNA).
+* **Animation Vidéo** : Kling Pro anime les images statiques (5s par plan).
+* **Audio & Lip-Sync** : Voix off ultra-réaliste (Minimax) et musique d'ambiance (AceStep).
+* **Post-Production Auto** : Montage, mixage audio et incrustation de sous-titres via FFmpeg.
 
 ---
 
-## 🛠️ Pré-requis
+## 📋 Pré-requis
 
-* **Python 3.11+**
-* **FFmpeg** installé et ajouté au PATH système (Indispensable pour l'assemblage).
-* Clés API pour :
-    * [OpenAI](https://platform.openai.com/) (GPT-4o)
-    * [Fal.ai](https://fal.ai/) (Flux, Kling, Minimax, AceStep, Wizper)
+Avant de commencer, assurez-vous d'avoir installé :
 
----
-
-## 🚀 Installation (Local)
-
-1.  **Cloner le dépôt :**
-    ```bash
-    git clone [https://github.com/P2Enjoy/lelabs_ai-short-generator.git](https://github.com/P2Enjoy/lelabs_ai-short-generator.git)
-    cd lelabs_ai-short-generator
-    ```
-
-2.  **Créer un environnement virtuel (recommandé) :**
-    ```bash
-    # Windows
-    python -m venv venv
-    .\venv\Scripts\activate
-
-    # Mac/Linux
-    python3 -m venv venv
-    source venv/bin/activate
-    ```
-
-3.  **Installer les dépendances :**
-    ```bash
-    pip install -r requirements.txt
-    ```
-
-4.  **Configurer les variables d'environnement :**
-    Créez un fichier `.env` à la racine du projet et ajoutez vos clés :
-    ```env
-    OPENAI_API_KEY=sk-proj-xxxxxxxxxxxxxxxxxxxxxxxx
-    FAL_KEY=key-xxxxxxxxxxxxxxxxxxxxxxxx
-    ```
-
-5.  **Lancer l'application :**
-    ```bash
-    python app.py
-    ```
-    Ouvrez votre navigateur sur `http://127.0.0.1:5000`.
+1.  **[Docker Desktop](https://www.docker.com/products/docker-desktop/)** (Indispensable).
+2.  **Git**.
 
 ---
 
-## 🐳 Installation (Docker)
+## 🏗️ Installation et Architecture
 
-Le projet est prêt pour Docker. L'image inclut Python et FFmpeg pré-configurés.
+Pour que l'application fonctionne avec Docker Compose, vous devez respecter une structure de dossiers précise, car le fichier de configuration va chercher le code du proxy dans le dossier voisin.
 
-1.  **Construire l'image :**
-    ```bash
-    docker build -t ai-short-generator .
-    ```
+### 1. Structure des dossiers attendue
+Créez un dossier parent (ex: `LELABS_STACK`) et clonez les deux dépôts à l'intérieur :
 
-2.  **Lancer le conteneur :**
-    Assurez-vous d'avoir votre fichier `.env` prêt.
-    ```bash
-    docker run -p 5000:5000 --env-file .env ai-short-generator
-    ```
-    L'application sera accessible sur `http://localhost:5000`.
+```text
+LELABS_STACK/
+├── lelabs_ai-short-generator/   <-- Ce dépôt (Application Vidéo)
+│   ├── docker-compose/          <-- Contient le fichier docker-compose.yml
+│   ├── app.py
+│   └── ...
+│
+└── lelabs_api-proxy/            <-- Le dépôt d'Infrastructure (Proxy)
+    ├── quota/
+    └── ...
+
+```
+
+### 2. Cloner les dépôts
+
+```bash
+# Dans votre dossier LELABS_STACK
+git clone [https://github.com/P2Enjoy/lelabs_ai-short-generator.git](https://github.com/P2Enjoy/lelabs_ai-short-generator.git)
+git clone [https://github.com/P2Enjoy/lelabs_api-proxy.git](https://github.com/P2Enjoy/lelabs_api-proxy.git)
+
+```
+
+### 3. Configuration des Clés API (.env)
+
+Créez un fichier `.env` à la racine du dossier **`lelabs_ai-short-generator`**.
+⚠️ **Ce fichier ne doit jamais être commité sur GitHub.**
+
+```env
+# Clés API réelles (utilisées par le système)
+OPENAI_API_KEY=sk-proj-xxxxxxxxxxxxxxxxxxxxxxxxxxxx
+FAL_KEY=key-xxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+# Configuration du Proxy (Ne pas modifier pour Docker)
+OPENAI_BASE_URL=http://proxy-app:8000/v1
+FAL_HOST=proxy-app:8000
+FAL_G_INSECURE=true
+
+```
+
+---
+
+## 🚀 Lancer l'application (Docker)
+
+Nous utilisons `docker-compose` pour lancer simultanément l'application vidéo et le proxy, et les relier via un réseau privé.
+
+1. Ouvrez votre terminal dans le dossier **`lelabs_ai-short-generator`**.
+2. Lancez la commande suivante (en pointant vers le fichier situé dans le sous-dossier) :
+
+```bash
+docker-compose -f docker-compose/docker-compose.yml up --build
+
+```
+
+**Ce que fait cette commande :**
+
+* Construit l'image du Générateur (avec Python et FFmpeg).
+* Construit l'image du Proxy (en cherchant le code dans le dossier voisin `../lelabs_api-proxy`).
+* Démarre les deux services.
+* Configure le routage pour que le Générateur parle au Proxy.
 
 ---
 
 ## 🎮 Utilisation
 
-1.  **Page Config (`/config`)** :
-    * Entrez votre idée (ex: "Un samouraï cyberpunk médite sous la pluie").
-    * Choisissez le style visuel, le mouvement de caméra, la voix et la durée.
-    * Activez/Désactivez la Musique et les Sous-titres.
+Une fois que les logs indiquent que les serveurs tournent :
 
-2.  **Page Éditeur (`/editor`)** :
-    * L'IA génère un plan de production (3 à 9 scènes).
-    * **Générer Storyboard** : Crée les images de référence avec Flux.
-    * *Optionnel* : Cliquez sur une image pour la sélectionner et la régénérer si elle ne vous plaît pas.
-    * Vous pouvez modifier le texte de la Voix Off directement.
+1. Ouvrez votre navigateur sur : **[http://localhost:5000/config](https://www.google.com/search?q=http://localhost:5000/config)**
+2. Entrez votre idée de vidéo.
+3. Configurez le style et lancez la génération.
 
-3.  **Rendu Final (`/process`)** :
-    * Cliquez sur "Lancer le Rendu".
-    * Le système génère l'audio, la vidéo (Kling), la musique, transcrit les sous-titres et assemble le tout avec FFmpeg.
-    * Téléchargez votre vidéo finale.
+**Vérification de l'intégration :**
+Regardez vos logs terminaux pendant la génération. Vous devriez voir des lignes venant de `proxy-app` indiquant :
+`🔄 PROXY (Bypass): v1/chat/completions -> ...`
+Cela confirme que votre trafic passe bien par l'infrastructure interne.
 
 ---
 
-## 📂 Structure du Projet
+## 🛠️ Dépannage
 
-* `app.py` : Serveur Flask et points d'entrée API.
-* `orchestrator.py` : Le "Cerveau" (GPT-4o) qui écrit le script et les prompts techniques.
-* `generator.py` : Gestion des appels API vers Fal.ai (Images, Vidéo, Audio, Musique, Subs).
-* `assembler.py` : Script de montage vidéo automatisé (FFmpeg wrapper).
-* `templates/` : Interface utilisateur (HTML/JS).
-* `static/outputs/` : Dossier où sont sauvegardées les vidéos générées.
-
----
-
-## ⚠️ Notes Importantes
-
-* **Coûts API** : La génération de vidéo (Kling Pro) et d'images (Flux) coûte des crédits Fal.ai. Surveillez votre consommation.
-* **Temps de Rendu** : La génération vidéo prend du temps (environ 2-3 minutes pour une vidéo de 15s). Ne fermez pas la fenêtre pendant le processus.
-* **Windows** : Si vous n'utilisez pas Docker, assurez-vous que FFmpeg est correctement installé dans vos variables d'environnement système.
+* **Erreur `connection refused` ou `host not found**` : Vérifiez que le conteneur `proxy-app` est bien lancé.
+* **Erreur FFmpeg** : Si la vidéo finale échoue, assurez-vous que le Dockerfile a bien installé `ffmpeg` (c'est inclus par défaut dans l'image fournie).
+* **Problème de chemins (Build Context)** : Si Docker ne trouve pas le proxy ("build context not found"), vérifiez impérativement que vos deux dossiers (`lelabs_ai-short-generator` et `lelabs_api-proxy`) sont bien côte à côte dans le même dossier parent.
 
 ---
 
 **Développé par P2Enjoy / LeLabs**
+
+```
